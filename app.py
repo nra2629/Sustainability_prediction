@@ -162,7 +162,7 @@ section.main,
 
 /* ── Sidebar selectbox ── */
 [data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
-    background-color: #F5E6C8 !important;
+    background-color: #ffffff !important;
     border: 2px solid #D4AF37 !important;
     border-radius: 8px !important;
 }
@@ -645,7 +645,6 @@ for rx, ry, rtxt, rcol in region_labels:
 
 fig_db.update_layout(
     title="<b>LR Decision Boundary</b>"
-          "<br><sup>Regions show predicted class · boundary lines show where the model switches</sup>",
     height=560,
     paper_bgcolor=CHART_BG,
     plot_bgcolor=CHART_BG,
