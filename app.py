@@ -398,9 +398,8 @@ with left:
     gauge.update_layout(height=340, paper_bgcolor=CHART_BG, plot_bgcolor=CHART_BG,
                         margin=dict(l=30, r=30, t=60, b=10), font=FONT)
     st.plotly_chart(
-    fig3d,
-    use_container_width=True,
-    config={"scrollZoom": True}
+    gauge,
+    use_container_width=True
 )
 
 with right:
@@ -453,6 +452,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+
 # ─────────────────────────────────────────────
 #  3D PREDICTION SPACE
 # ─────────────────────────────────────────────
@@ -488,7 +488,11 @@ fig3d.update_layout(
     margin=dict(l=0, r=0, t=50, b=0)
 )
 
-st.plotly_chart(fig3d, use_container_width=True)
+st.plotly_chart(
+    fig3d,
+    use_container_width=True,
+    config={"scrollZoom": True, "displayModeBar": True}
+)
 
 # ─────────────────────────────────────────────
 #  2D PROJECTION
