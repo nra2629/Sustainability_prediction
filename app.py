@@ -494,15 +494,20 @@ st.plotly_chart(
     config={"scrollZoom": True, "displayModeBar": True}
 )
 
+
+df_plot_lr = df.copy()
+df_plot_lr["model_pred"] = model_lr.predict(df[X_cols])
+
+
 # ─────────────────────────────────────────────
 #  2D PROJECTION
 # ─────────────────────────────────────────────
 st.markdown('<div class="section-title">🗺️ 2D Sustainability Projection</div>', unsafe_allow_html=True)
 
 fig2d = px.scatter(
-    df_plot, x="recycling_rate", y="landfill_share",
+    df_plot_lr, x="recycling_rate", y="landfill_share",
     color="model_pred", opacity=0.68,
-    title=f"<b>2D Projection — {model_choice}</b>",
+    title=f"<b>2D Projection — Logistic Regression</b>",
     color_discrete_sequence=JEWEL
 )
 fig2d.add_scatter(
