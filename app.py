@@ -459,36 +459,31 @@ df_plot["model_pred"] = class_model.predict(df[X_cols])
 
 fig3d = px.scatter_3d(
     df_plot,
-    x="recycling_rate", y="landfill_share", z="combustion_share",
-    color="model_pred", opacity=0.62,
-    title=f"<b>Prediction Space — {model_choice}</b>",
+    x="recycling_rate",
+    y="landfill_share",
+    z="combustion_share",
+    color="model_pred",
+    opacity=0.62,
+    title=f"Prediction Space — {model_choice}",
     color_discrete_sequence=JEWEL
 )
+
 fig3d.add_trace(go.Scatter3d(
-    x=[recycling_rate], y=[landfill_share], z=[combustion_share],
+    x=[recycling_rate],
+    y=[landfill_share],
+    z=[combustion_share],
     mode="markers+text",
-    marker=dict(size=12, color="#D4AF37", symbol="diamond",
-                line=dict(color="#ffffff", width=2)),
+    marker=dict(size=10, color="#D4AF37", symbol="diamond"),
     text=[f"Input: {pred_class}"],
-    textposition="top center", name="Input",
-    textfont=dict(color="#5C2D91", size=13, family="IBM Plex Sans")
+    textposition="top center",
+    name="Input"
 ))
+
 fig3d.update_layout(
-    height=640, paper_bgcolor=CHART_BG, font=FONT,
-    title_font_size=15,
-    scene=dict(
-        bgcolor=CHART_BG,
-        xaxis=dict(backgroundcolor="#EDE2F5", gridcolor="#C3A8E0",
-                   title="Recycling Rate",   titlefont=dict(color="#5C2D91")),
-        yaxis=dict(backgroundcolor="#C8EBE4", gridcolor="#8FD0C5",
-                   title="Landfill Share",   titlefont=dict(color="#0E6655")),
-        zaxis=dict(backgroundcolor="#FDF3DC", gridcolor="#E8C96A",
-                   title="Combustion Share", titlefont=dict(color="#9A7D0A"))
-    ),
-    margin=dict(l=0, r=0, t=55, b=0),
-    legend=dict(bgcolor="#EBEBED", bordercolor="#C9C3D8", borderwidth=1,
-                font=dict(color="#1C1B2E"))
+    height=640,
+    margin=dict(l=0, r=0, t=50, b=0)
 )
+
 st.plotly_chart(fig3d, use_container_width=True)
 
 # ─────────────────────────────────────────────
