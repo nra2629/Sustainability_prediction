@@ -496,32 +496,102 @@ st.plotly_chart(
 
 
 # ─────────────────────────────────────────────
-#  2D PROJECTION (Logistic Regression)
+#  2D LOGISTIC DECISION MAP
 # ─────────────────────────────────────────────
-st.markdown('<div class="section-title">🗺️ 2D Sustainability Projection</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">🗺️ 2D Logistic Regression Decision Map</div>', unsafe_allow_html=True)
 
+# grid for 2D space
+x_min, x_max = df["recycling_rate"].min(), df["recycling_rate"].max()
+y_min, y_max = df["landfill_share"].min(), df["landfill_share"].max()
+
+xx, yy = np.meshgrid(
+    np.linspace(x_min, x_max, 120),
+    np.linspace(y_min, y_max, 120)
+)
+
+# fix combustion share at current input value
+comb_fixed = combustion_share
+generated_fixed = generated_tons
+
+# build grid features
+grid_df = pd.DataFrame({
+    "recycling_rate": xx.ravel(),
+    "landfill_share": yy.ravel(),
+    "combustion_share": comb_fixed
+})
+
+# convert rates into tons so model gets full feature set
+grid_df["recycled_tons"] = grid_df["recycling_rate"] * generated_fixed
+grid_df["landfilled_tons"] = grid_df["landfill_share"] * generated_fixed
+grid_df["combusted_tons"] = grid_df["combustion_share"] * generated_fixed
+grid_df["generated_tons"] = generated_fixed
+
+grid_df = grid_df[[
+    "generated_tons",
+    "recycled_tons",
+    "landfilled_tons",
+    "combusted_tons",
+    "recycling_rate",
+    "landfill_share",
+    "combustion_share"
+]]
+
+# logistic predictions on grid
+grid_pred = model_lr.predict(grid_df)
+z = pd.Categorical(grid_pred).codes.reshape(xx.shape)
+
+fig2d = go.Figure()
+
+# background decision regions
+fig2d.add_trace(go.Contour(
+    x=np.linspace(x_min, x_max, 120),
+    y=np.linspace(y_min, y_max, 120),
+    z=z,
+    colorscale=[
+        [0.0, "#F5C6C6"],
+        [0.5, "#EDE2F5"],
+        [1.0, "#C8EBE4"]
+    ],
+    opacity=0.55,
+    showscale=False,
+    contours=dict(showlines=False)
+))
+
+# actual historical points
 df_plot_lr = df.copy()
 df_plot_lr["model_pred"] = model_lr.predict(df[X_cols])
 
-fig2d = px.scatter(
-    df_plot_lr, x="recycling_rate", y="landfill_share",
-    color="model_pred", opacity=0.68,
-    title="<b>2D Projection — Logistic Regression</b>",
-    color_discrete_sequence=JEWEL
-)
+for cls, color in zip(
+    ["Harmful", "Moderate", "Sustainable"],
+    ["#C0392B", "#7D3C98", "#1A8A72"]
+):
+    sub = df_plot_lr[df_plot_lr["model_pred"] == cls]
+    fig2d.add_trace(go.Scatter(
+        x=sub["recycling_rate"],
+        y=sub["landfill_share"],
+        mode="markers",
+        marker=dict(size=7, color=color, opacity=0.7),
+        name=cls
+    ))
 
-fig2d.add_scatter(
-    x=[recycling_rate], y=[landfill_share],
+# user input point
+fig2d.add_trace(go.Scatter(
+    x=[recycling_rate],
+    y=[landfill_share],
     mode="markers+text",
-    marker=dict(size=18, color="#D4AF37", symbol="diamond",
+    marker=dict(size=16, color="#D4AF37", symbol="diamond",
                 line=dict(color="#5C2D91", width=2)),
-    text=["Input"], textposition="top center", name="Input",
-    textfont=dict(color="#5C2D91", size=13, family="IBM Plex Sans")
-)
+    text=["Input"],
+    textposition="top center",
+    name="Input"
+))
 
 fig2d.update_layout(
-    height=520, paper_bgcolor=CHART_BG, plot_bgcolor="#F0EBF8", font=FONT,
-    title_font_size=14,
+    title="<b>2D Logistic Regression Decision Map</b>",
+    height=520,
+    paper_bgcolor=CHART_BG,
+    plot_bgcolor="#F0EBF8",
+    font=FONT,
     xaxis=dict(title="Recycling Rate", showgrid=True, gridcolor=GRID_COLOR, color="#1C1B2E"),
     yaxis=dict(title="Landfill Share", showgrid=True, gridcolor=GRID_COLOR, color="#1C1B2E"),
     legend=dict(bgcolor="#EBEBED", bordercolor="#C9C3D8", borderwidth=1,
