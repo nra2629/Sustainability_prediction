@@ -500,13 +500,6 @@ st.plotly_chart(fig3d, use_container_width=True,
 st.markdown('<div class="section-title">🧭 Logistic Regression Decision Boundary</div>',
             unsafe_allow_html=True)
 
-st.caption(
-    "Coloured regions show where the Logistic Regression model predicts each class "
-    "across the recycling-rate × landfill-share space (combustion share & generated tons "
-    "held at your current sidebar values). Move the sliders to watch your gold marker "
-    "cross the boundary lines in real time."
-)
-
 # ── build fine grid ──
 RES = 200
 x_min, x_max = 0.0, 1.0
