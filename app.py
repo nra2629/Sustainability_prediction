@@ -397,7 +397,11 @@ with left:
     ))
     gauge.update_layout(height=340, paper_bgcolor=CHART_BG, plot_bgcolor=CHART_BG,
                         margin=dict(l=30, r=30, t=60, b=10), font=FONT)
-    st.plotly_chart(gauge, use_container_width=True)
+    st.plotly_chart(
+    fig3d,
+    use_container_width=True,
+    config={"scrollZoom": True}
+)
 
 with right:
     prob_df = pd.DataFrame({
