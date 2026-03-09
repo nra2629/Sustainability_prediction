@@ -94,6 +94,11 @@ section.main,
     position: relative;
     overflow: hidden;
     border-top: 3px solid rgba(212,175,55,0.5);
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 .kpi-card::before {
     content: "";
