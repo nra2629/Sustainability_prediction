@@ -27,7 +27,6 @@ html, body, [class*="css"] {
     color: #1C1B2E;
 }
 
-/* Force ALL Streamlit wrappers to the grey background */
 .stApp,
 .stApp > header,
 [data-testid="stAppViewContainer"],
@@ -40,7 +39,6 @@ section.main,
     background-color: #E8E8EA !important;
 }
 
-/* Remove any white card padding areas */
 [data-testid="stVerticalBlock"] {
     background-color: transparent !important;
 }
@@ -123,6 +121,10 @@ section.main,
     color: #ffffff;
     line-height: 1.1;
 }
+.kpi-gold .kpi-value {
+    color: #D4AF37 !important;
+    text-shadow: 0 1px 6px rgba(212,175,55,0.3);
+}
 
 /* ── Section headings ── */
 .section-title {
@@ -158,6 +160,34 @@ section.main,
     padding-bottom: 0.8rem;
 }
 
+/* ── Sidebar selectbox ── */
+[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
+    background-color: #ffffff !important;
+    border: 2px solid #D4AF37 !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div > div,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] span,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] p {
+    color: #1C1B2E !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+}
+[data-testid="stSidebar"] [data-testid="stSelectbox"] svg {
+    fill: #2D1B54 !important;
+}
+[data-testid="stSelectboxVirtualDropdown"],
+[data-testid="stSelectboxVirtualDropdown"] li,
+[data-testid="stSelectboxVirtualDropdown"] span {
+    background: #ffffff !important;
+    color: #1C1B2E !important;
+    font-weight: 500 !important;
+}
+[data-testid="stSelectboxVirtualDropdown"] li:hover {
+    background: #EDE2F5 !important;
+    color: #2D1B54 !important;
+}
+
 /* ── Success box ── */
 div[data-testid="stAlert"] {
     background: linear-gradient(90deg, #E8F8F5, #D5F5E3) !important;
@@ -166,14 +196,6 @@ div[data-testid="stAlert"] {
     color: #0B4C3A !important;
     font-weight: 600;
 }
-
-/* ── Dataframe header ── */
-[data-testid="stDataFrameResizable"] thead tr th {
-    background: #2D1B54 !important;
-    color: #D4AF37 !important;
-    font-weight: 700;
-}
-
 
 /* ── Styled HTML tables ── */
 .tbl-wrap {
@@ -216,15 +238,9 @@ div[data-testid="stAlert"] {
     border-bottom: 1px solid #EDE9F5;
     transition: background 0.15s;
 }
-.styled-table tbody tr:nth-child(even) {
-    background: #F5F2FB;
-}
-.styled-table tbody tr:nth-child(odd) {
-    background: #FDFCFF;
-}
-.styled-table tbody tr:hover {
-    background: #EDE2F5;
-}
+.styled-table tbody tr:nth-child(even) { background: #F5F2FB; }
+.styled-table tbody tr:nth-child(odd)  { background: #FDFCFF; }
+.styled-table tbody tr:hover           { background: #EDE2F5; }
 .tbl-icon {
     padding: 0.7rem 0.6rem 0.7rem 1.1rem;
     font-size: 1rem;
@@ -319,20 +335,17 @@ input_df = pd.DataFrame([{
 #  PREDICTIONS
 # ─────────────────────────────────────────────
 class_model = model_rf if model_choice == "Random Forest" else model_lr
+pred_class  = class_model.predict(input_df)[0]
+pred_probs  = class_model.predict_proba(input_df)[0]
 
-pred_class = class_model.predict(input_df)[0]
-pred_probs = class_model.predict_proba(input_df)[0]
-
-# score derived from selected model probabilities
 class_score_map = {"Harmful": 0, "Moderate": 50, "Sustainable": 100}
 pred_score = float(sum(
     prob * class_score_map[label]
     for label, prob in zip(class_model.classes_, pred_probs)
 ))
 
-selected_row = test_results[test_results["Model"] == model_choice].iloc[0]
-overall_best_model = test_results.loc[test_results["Macro F1"].idxmax(), "Model"]
-overall_best_f1 = test_results["Macro F1"].max()
+best_model = test_results.loc[test_results["Macro F1"].idxmax(), "Model"]
+best_f1    = test_results["Macro F1"].max()
 
 # ─────────────────────────────────────────────
 #  KPI CARDS
@@ -359,11 +372,16 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 #  SHARED CHART SETTINGS
 # ─────────────────────────────────────────────
-JEWEL      = ["#7D3C98", "#1A8A72", "#D4AF37", "#1A5276",
-              "#C0392B", "#2E86C1", "#CA6F1E", "#0B5345"]
+JEWEL      = ["#C0392B", "#7D3C98", "#1A8A72"]   # Harmful, Moderate, Sustainable
 CHART_BG   = "#F7F7F8"
 GRID_COLOR = "#DDD8E8"
 FONT       = {"family": "IBM Plex Sans"}
+
+CLASS_COLORS = {
+    "Harmful":     "#C0392B",
+    "Moderate":    "#7D3C98",
+    "Sustainable": "#1A8A72"
+}
 
 # ─────────────────────────────────────────────
 #  GAUGE + PROBABILITY
@@ -397,10 +415,7 @@ with left:
     ))
     gauge.update_layout(height=340, paper_bgcolor=CHART_BG, plot_bgcolor=CHART_BG,
                         margin=dict(l=30, r=30, t=60, b=10), font=FONT)
-    st.plotly_chart(
-    gauge,
-    use_container_width=True
-)
+    st.plotly_chart(gauge, use_container_width=True)
 
 with right:
     prob_df = pd.DataFrame({
@@ -452,7 +467,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-
 # ─────────────────────────────────────────────
 #  3D PREDICTION SPACE
 # ─────────────────────────────────────────────
@@ -463,153 +477,217 @@ df_plot["model_pred"] = class_model.predict(df[X_cols])
 
 fig3d = px.scatter_3d(
     df_plot,
-    x="recycling_rate",
-    y="landfill_share",
-    z="combustion_share",
-    color="model_pred",
-    opacity=0.62,
+    x="recycling_rate", y="landfill_share", z="combustion_share",
+    color="model_pred", opacity=0.62,
     title=f"Prediction Space — {model_choice}",
-    color_discrete_sequence=JEWEL
+    color_discrete_sequence=list(CLASS_COLORS.values())
 )
-
 fig3d.add_trace(go.Scatter3d(
-    x=[recycling_rate],
-    y=[landfill_share],
-    z=[combustion_share],
+    x=[recycling_rate], y=[landfill_share], z=[combustion_share],
     mode="markers+text",
     marker=dict(size=10, color="#D4AF37", symbol="diamond"),
     text=[f"Input: {pred_class}"],
     textposition="top center",
     name="Input"
 ))
-
-fig3d.update_layout(
-    height=640,
-    margin=dict(l=0, r=0, t=50, b=0)
-)
-
-st.plotly_chart(
-    fig3d,
-    use_container_width=True,
-    config={"scrollZoom": True, "displayModeBar": True}
-)
-
+fig3d.update_layout(height=640, margin=dict(l=0, r=0, t=50, b=0))
+st.plotly_chart(fig3d, use_container_width=True,
+                config={"scrollZoom": True, "displayModeBar": True})
 
 # ─────────────────────────────────────────────
-#  2D LOGISTIC DECISION MAP
+#  LOGISTIC REGRESSION DECISION BOUNDARY MAP
 # ─────────────────────────────────────────────
-st.markdown('<div class="section-title">🗺️ 2D Logistic Regression Decision Map</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">🧭 Logistic Regression Decision Boundary</div>',
+            unsafe_allow_html=True)
 
-# grid for 2D space
-x_min, x_max = df["recycling_rate"].min(), df["recycling_rate"].max()
-y_min, y_max = df["landfill_share"].min(), df["landfill_share"].max()
+st.caption(
+    "Coloured regions show where the Logistic Regression model predicts each class "
+    "across the recycling-rate × landfill-share space (combustion share & generated tons "
+    "held at your current sidebar values). Move the sliders to watch your gold marker "
+    "cross the boundary lines in real time."
+)
+
+# ── build fine grid ──
+RES = 200
+x_min, x_max = 0.0, 1.0
+y_min, y_max = 0.0, 1.0
 
 xx, yy = np.meshgrid(
-    np.linspace(x_min, x_max, 120),
-    np.linspace(y_min, y_max, 120)
+    np.linspace(x_min, x_max, RES),
+    np.linspace(y_min, y_max, RES)
 )
 
-# fix combustion share at current input value
-comb_fixed = combustion_share
-generated_fixed = generated_tons
+grid_rr  = xx.ravel()
+grid_ls  = yy.ravel()
+grid_cs  = np.full_like(grid_rr, combustion_share)
+grid_gen = np.full_like(grid_rr, generated_tons)
 
-# build grid features
 grid_df = pd.DataFrame({
-    "recycling_rate": xx.ravel(),
-    "landfill_share": yy.ravel(),
-    "combustion_share": comb_fixed
-})
+    "generated_tons":   grid_gen,
+    "recycled_tons":    grid_rr  * grid_gen,
+    "landfilled_tons":  grid_ls  * grid_gen,
+    "combusted_tons":   grid_cs  * grid_gen,
+    "recycling_rate":   grid_rr,
+    "landfill_share":   grid_ls,
+    "combustion_share": grid_cs,
+})[X_cols]
 
-# convert rates into tons so model gets full feature set
-grid_df["recycled_tons"] = grid_df["recycling_rate"] * generated_fixed
-grid_df["landfilled_tons"] = grid_df["landfill_share"] * generated_fixed
-grid_df["combusted_tons"] = grid_df["combustion_share"] * generated_fixed
-grid_df["generated_tons"] = generated_fixed
+grid_pred   = model_lr.predict(grid_df)
+grid_proba  = model_lr.predict_proba(grid_df)          # shape (N, n_classes)
+# confidence = probability of the winning class
+grid_conf   = grid_proba.max(axis=1).reshape(RES, RES)
 
-grid_df = grid_df[[
-    "generated_tons",
-    "recycled_tons",
-    "landfilled_tons",
-    "combusted_tons",
-    "recycling_rate",
-    "landfill_share",
-    "combustion_share"
-]]
+# encode classes to integers for heatmap
+class_order = list(model_lr.classes_)                  # e.g. ['Harmful','Moderate','Sustainable']
+class_to_int = {c: i for i, c in enumerate(class_order)}
+z_class = np.array([class_to_int[p] for p in grid_pred]).reshape(RES, RES)
 
-# logistic predictions on grid
-grid_pred = model_lr.predict(grid_df)
-z = pd.Categorical(grid_pred).codes.reshape(xx.shape)
+# blend: shift z slightly by confidence so boundaries look crisp
+z_blend = z_class.astype(float) + (grid_conf - 0.5) * 0.6
 
-fig2d = go.Figure()
+# region colours matching jewel palette
+region_colorscale = [
+    [0.0,  "#FADADD"],   # Harmful — soft red
+    [0.25, "#F5C6C6"],
+    [0.40, "#EDE2F5"],   # Moderate — soft lavender
+    [0.60, "#DDD0F0"],
+    [0.75, "#C8EBE4"],   # Sustainable — soft mint
+    [1.0,  "#A8DDD4"],
+]
 
-# background decision regions
-fig2d.add_trace(go.Contour(
-    x=np.linspace(x_min, x_max, 120),
-    y=np.linspace(y_min, y_max, 120),
-    z=z,
-    colorscale=[
-        [0.0, "#F5C6C6"],
-        [0.5, "#EDE2F5"],
-        [1.0, "#C8EBE4"]
-    ],
-    opacity=0.55,
+fig_db = go.Figure()
+
+# ── background decision regions ──
+fig_db.add_trace(go.Heatmap(
+    x=np.linspace(x_min, x_max, RES),
+    y=np.linspace(y_min, y_max, RES),
+    z=z_blend,
+    colorscale=region_colorscale,
     showscale=False,
-    contours=dict(showlines=False)
+    opacity=0.70,
+    hoverinfo="skip"
 ))
 
-# actual historical points
-df_plot_lr = df.copy()
-df_plot_lr["model_pred"] = model_lr.predict(df[X_cols])
+# ── decision boundary contour lines ──
+fig_db.add_trace(go.Contour(
+    x=np.linspace(x_min, x_max, RES),
+    y=np.linspace(y_min, y_max, RES),
+    z=z_class.astype(float),
+    contours=dict(
+        start=0.5, end=len(class_order) - 0.5,
+        size=1.0,
+        coloring="none",
+        showlabels=False
+    ),
+    line=dict(color="#2D1B54", width=2.5, dash="solid"),
+    showscale=False,
+    hoverinfo="skip"
+))
 
-for cls, color in zip(
-    ["Harmful", "Moderate", "Sustainable"],
-    ["#C0392B", "#7D3C98", "#1A8A72"]
-):
-    sub = df_plot_lr[df_plot_lr["model_pred"] == cls]
-    fig2d.add_trace(go.Scatter(
+# ── actual data points coloured by true LR prediction ──
+df_lr = df.copy()
+df_lr["lr_pred"] = model_lr.predict(df[X_cols])
+
+for cls in class_order:
+    sub = df_lr[df_lr["lr_pred"] == cls]
+    fig_db.add_trace(go.Scatter(
         x=sub["recycling_rate"],
         y=sub["landfill_share"],
         mode="markers",
-        marker=dict(size=7, color=color, opacity=0.7),
-        name=cls
+        marker=dict(
+            size=6,
+            color=CLASS_COLORS[cls],
+            opacity=0.75,
+            line=dict(color="#ffffff", width=0.6)
+        ),
+        name=cls,
+        hovertemplate=(
+            f"<b>{cls}</b><br>"
+            "Recycling Rate: %{x:.3f}<br>"
+            "Landfill Share: %{y:.3f}<extra></extra>"
+        )
     ))
 
-# user input point
-fig2d.add_trace(go.Scatter(
+# ── your input marker ──
+fig_db.add_trace(go.Scatter(
     x=[recycling_rate],
     y=[landfill_share],
     mode="markers+text",
-    marker=dict(size=16, color="#D4AF37", symbol="diamond",
-                line=dict(color="#5C2D91", width=2)),
-    text=["Input"],
-    textposition="top center",
-    name="Input"
+    marker=dict(
+        size=18,
+        color="#D4AF37",
+        symbol="diamond",
+        line=dict(color="#2D1B54", width=2.5)
+    ),
+    text=[f"  ← {pred_class}"],
+    textposition="middle right",
+    textfont=dict(size=13, color="#2D1B54", family="IBM Plex Sans"),
+    name="Your Input",
+    hovertemplate=(
+        "<b>Your Input</b><br>"
+        f"Predicted: <b>{pred_class}</b><br>"
+        "Recycling Rate: %{x:.3f}<br>"
+        "Landfill Share: %{y:.3f}<extra></extra>"
+    )
 ))
 
-fig2d.update_layout(
-    title="<b>2D Logistic Regression Decision Map</b>",
-    height=520,
+# ── region label annotations ──
+region_labels = [
+    (0.08, 0.85, "HARMFUL",     "#C0392B"),
+    (0.50, 0.50, "MODERATE",    "#5C2D91"),
+    (0.85, 0.10, "SUSTAINABLE", "#0E6655"),
+]
+for rx, ry, rtxt, rcol in region_labels:
+    fig_db.add_annotation(
+        x=rx, y=ry, text=f"<b>{rtxt}</b>",
+        showarrow=False,
+        font=dict(size=13, color=rcol, family="Playfair Display"),
+        bgcolor="rgba(255,255,255,0.55)",
+        bordercolor=rcol,
+        borderwidth=1,
+        borderpad=4,
+        opacity=0.90
+    )
+
+fig_db.update_layout(
+    title="<b>Logistic Regression Decision Boundary</b>"
+          "<br><sup>Regions show predicted class · boundary lines show where the model switches</sup>",
+    height=560,
     paper_bgcolor=CHART_BG,
-    plot_bgcolor="#F0EBF8",
+    plot_bgcolor=CHART_BG,
     font=FONT,
-    xaxis=dict(title="Recycling Rate", showgrid=True, gridcolor=GRID_COLOR, color="#1C1B2E"),
-    yaxis=dict(title="Landfill Share", showgrid=True, gridcolor=GRID_COLOR, color="#1C1B2E"),
-    legend=dict(bgcolor="#EBEBED", bordercolor="#C9C3D8", borderwidth=1,
-                font=dict(color="#1C1B2E")),
-    margin=dict(l=20, r=20, t=55, b=20)
+    title_font_size=15,
+    xaxis=dict(
+        title="Recycling Rate",
+        range=[x_min, x_max],
+        showgrid=True, gridcolor=GRID_COLOR,
+        zeroline=False, color="#1C1B2E"
+    ),
+    yaxis=dict(
+        title="Landfill Share",
+        range=[y_min, y_max],
+        showgrid=True, gridcolor=GRID_COLOR,
+        zeroline=False, color="#1C1B2E"
+    ),
+    legend=dict(
+        bgcolor="#EBEBED", bordercolor="#C9C3D8", borderwidth=1,
+        font=dict(color="#1C1B2E"), title_text="LR Prediction"
+    ),
+    margin=dict(l=20, r=20, t=80, b=20)
 )
 
-st.plotly_chart(fig2d, use_container_width=True)
+st.plotly_chart(fig_db, use_container_width=True)
 
 # ─────────────────────────────────────────────
 #  MODEL PERFORMANCE
 # ─────────────────────────────────────────────
-st.markdown('<div class="section-title">📈 Model Performance Comparison</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">📈 Model Performance Comparison</div>',
+            unsafe_allow_html=True)
 
-def df_to_styled_html(df, title):
-    header = "".join(f'<th>{c}</th>' for c in df.columns)
+def df_to_styled_html(dataframe, title):
+    header = "".join(f'<th>{c}</th>' for c in dataframe.columns)
     body = ""
-    for _, row in df.iterrows():
+    for _, row in dataframe.iterrows():
         cells = ""
         for i, v in enumerate(row):
             if i == 0:
@@ -628,7 +706,6 @@ def df_to_styled_html(df, title):
     <tbody>{body}</tbody>
   </table>
 </div>"""
-
 
 st.markdown(df_to_styled_html(test_results, "Test Set Results"), unsafe_allow_html=True)
 
@@ -657,14 +734,13 @@ fig_metrics.update_layout(
 )
 st.plotly_chart(fig_metrics, use_container_width=True)
 
-best_model = test_results.loc[test_results["Macro F1"].idxmax(), "Model"]
-best_f1    = test_results["Macro F1"].max()
 st.success(f"🏆  Best test-set model: **{best_model}** — Macro F1 = **{best_f1:.2f}**")
 
 # ─────────────────────────────────────────────
 #  FEATURE IMPORTANCE
 # ─────────────────────────────────────────────
-st.markdown('<div class="section-title">🔍 Feature Importance — Random Forest</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">🔍 Feature Importance — Random Forest</div>',
+            unsafe_allow_html=True)
 
 rf_importance = pd.DataFrame({
     "Feature": X_cols, "Importance": model_rf.feature_importances_
@@ -684,4 +760,3 @@ fig_imp.update_layout(
     margin=dict(l=20, r=20, t=55, b=20)
 )
 st.plotly_chart(fig_imp, use_container_width=True)
-
