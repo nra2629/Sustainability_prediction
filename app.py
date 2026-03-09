@@ -630,7 +630,7 @@ for rx, ry, rtxt, rcol in region_labels:
     )
 
 fig_db.update_layout(
-    title=None,
+    title= "LR Decision Boundary",
     height=560,
     paper_bgcolor=CHART_BG,
     plot_bgcolor=CHART_BG,
