@@ -160,15 +160,22 @@ section.main,
     padding-bottom: 0.8rem;
 }
 
-/* ── Sidebar selectbox ── */
+/* ── Sidebar selectbox label — cream ── */
+[data-testid="stSidebar"] [data-testid="stSelectbox"] label,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] > label,
+[data-testid="stSidebar"] .stSelectbox label {
+    color: #F5E6C8 !important;
+    font-weight: 600 !important;
+}
+/* ── Sidebar selectbox box — white with dark text ── */
 [data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
     background-color: #ffffff !important;
     border: 2px solid #D4AF37 !important;
     border-radius: 8px !important;
 }
 [data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div > div,
-[data-testid="stSidebar"] [data-testid="stSelectbox"] span,
-[data-testid="stSidebar"] [data-testid="stSelectbox"] p {
+[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div span,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div p {
     color: #1C1B2E !important;
     font-weight: 600 !important;
     font-size: 0.92rem !important;
@@ -372,7 +379,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 #  SHARED CHART SETTINGS
 # ─────────────────────────────────────────────
-JEWEL      = ["#C0392B", "#7D3C98", "#1A8A72"]   # Harmful, Moderate, Sustainable
+JEWEL      = ["#C0392B", "#7D3C98", "#1A8A72"]
 CHART_BG   = "#F7F7F8"
 GRID_COLOR = "#DDD8E8"
 FONT       = {"family": "IBM Plex Sans"}
@@ -500,7 +507,6 @@ st.plotly_chart(fig3d, use_container_width=True,
 st.markdown('<div class="section-title">🧭 Logistic Regression Decision Boundary</div>',
             unsafe_allow_html=True)
 
-
 # ── build fine grid ──
 RES = 200
 x_min, x_max = 0.0, 1.0
@@ -526,32 +532,26 @@ grid_df = pd.DataFrame({
     "combustion_share": grid_cs,
 })[X_cols]
 
-grid_pred   = model_lr.predict(grid_df)
-grid_proba  = model_lr.predict_proba(grid_df)          # shape (N, n_classes)
-# confidence = probability of the winning class
-grid_conf   = grid_proba.max(axis=1).reshape(RES, RES)
+grid_pred  = model_lr.predict(grid_df)
+grid_proba = model_lr.predict_proba(grid_df)
+grid_conf  = grid_proba.max(axis=1).reshape(RES, RES)
 
-# encode classes to integers for heatmap
-class_order = list(model_lr.classes_)                  # e.g. ['Harmful','Moderate','Sustainable']
+class_order  = list(model_lr.classes_)
 class_to_int = {c: i for i, c in enumerate(class_order)}
 z_class = np.array([class_to_int[p] for p in grid_pred]).reshape(RES, RES)
-
-# blend: shift z slightly by confidence so boundaries look crisp
 z_blend = z_class.astype(float) + (grid_conf - 0.5) * 0.6
 
-# region colours matching jewel palette
 region_colorscale = [
-    [0.0,  "#FADADD"],   # Harmful — soft red
+    [0.0,  "#FADADD"],
     [0.25, "#F5C6C6"],
-    [0.40, "#EDE2F5"],   # Moderate — soft lavender
+    [0.40, "#EDE2F5"],
     [0.60, "#DDD0F0"],
-    [0.75, "#C8EBE4"],   # Sustainable — soft mint
+    [0.75, "#C8EBE4"],
     [1.0,  "#A8DDD4"],
 ]
 
 fig_db = go.Figure()
 
-# ── background decision regions ──
 fig_db.add_trace(go.Heatmap(
     x=np.linspace(x_min, x_max, RES),
     y=np.linspace(y_min, y_max, RES),
@@ -562,23 +562,19 @@ fig_db.add_trace(go.Heatmap(
     hoverinfo="skip"
 ))
 
-# ── decision boundary contour lines ──
 fig_db.add_trace(go.Contour(
     x=np.linspace(x_min, x_max, RES),
     y=np.linspace(y_min, y_max, RES),
     z=z_class.astype(float),
     contours=dict(
         start=0.5, end=len(class_order) - 0.5,
-        size=1.0,
-        coloring="none",
-        showlabels=False
+        size=1.0, coloring="none", showlabels=False
     ),
     line=dict(color="#2D1B54", width=2.5, dash="solid"),
     showscale=False,
     hoverinfo="skip"
 ))
 
-# ── actual data points coloured by true LR prediction ──
 df_lr = df.copy()
 df_lr["lr_pred"] = model_lr.predict(df[X_cols])
 
@@ -588,12 +584,8 @@ for cls in class_order:
         x=sub["recycling_rate"],
         y=sub["landfill_share"],
         mode="markers",
-        marker=dict(
-            size=6,
-            color=CLASS_COLORS[cls],
-            opacity=0.75,
-            line=dict(color="#ffffff", width=0.6)
-        ),
+        marker=dict(size=6, color=CLASS_COLORS[cls], opacity=0.75,
+                    line=dict(color="#ffffff", width=0.6)),
         name=cls,
         hovertemplate=(
             f"<b>{cls}</b><br>"
@@ -602,17 +594,12 @@ for cls in class_order:
         )
     ))
 
-# ── your input marker ──
 fig_db.add_trace(go.Scatter(
     x=[recycling_rate],
     y=[landfill_share],
     mode="markers+text",
-    marker=dict(
-        size=18,
-        color="#D4AF37",
-        symbol="diamond",
-        line=dict(color="#2D1B54", width=2.5)
-    ),
+    marker=dict(size=18, color="#D4AF37", symbol="diamond",
+                line=dict(color="#2D1B54", width=2.5)),
     text=[f"  ← {pred_class}"],
     textposition="middle right",
     textfont=dict(size=13, color="#2D1B54", family="IBM Plex Sans"),
@@ -625,7 +612,6 @@ fig_db.add_trace(go.Scatter(
     )
 ))
 
-# ── region label annotations ──
 region_labels = [
     (0.08, 0.85, "HARMFUL",     "#C0392B"),
     (0.50, 0.50, "MODERATE",    "#5C2D91"),
@@ -644,12 +630,11 @@ for rx, ry, rtxt, rcol in region_labels:
     )
 
 fig_db.update_layout(
-    title="<b>LR Decision Boundary</b>"
+    title=None,
     height=560,
     paper_bgcolor=CHART_BG,
     plot_bgcolor=CHART_BG,
     font=FONT,
-    title_font_size=15,
     xaxis=dict(
         title="Recycling Rate",
         range=[x_min, x_max],
@@ -666,7 +651,7 @@ fig_db.update_layout(
         bgcolor="#EBEBED", bordercolor="#C9C3D8", borderwidth=1,
         font=dict(color="#1C1B2E"), title_text="LR Prediction"
     ),
-    margin=dict(l=20, r=20, t=80, b=20)
+    margin=dict(l=20, r=20, t=30, b=20)
 )
 
 st.plotly_chart(fig_db, use_container_width=True)
