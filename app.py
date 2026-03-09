@@ -495,21 +495,21 @@ st.plotly_chart(
 )
 
 
-df_plot_lr = df.copy()
-df_plot_lr["model_pred"] = model_lr.predict(df[X_cols])
-
-
 # ─────────────────────────────────────────────
-#  2D PROJECTION
+#  2D PROJECTION (Logistic Regression)
 # ─────────────────────────────────────────────
 st.markdown('<div class="section-title">🗺️ 2D Sustainability Projection</div>', unsafe_allow_html=True)
+
+df_plot_lr = df.copy()
+df_plot_lr["model_pred"] = model_lr.predict(df[X_cols])
 
 fig2d = px.scatter(
     df_plot_lr, x="recycling_rate", y="landfill_share",
     color="model_pred", opacity=0.68,
-    title=f"<b>2D Projection — Logistic Regression</b>",
+    title="<b>2D Projection — Logistic Regression</b>",
     color_discrete_sequence=JEWEL
 )
+
 fig2d.add_scatter(
     x=[recycling_rate], y=[landfill_share],
     mode="markers+text",
@@ -518,15 +518,17 @@ fig2d.add_scatter(
     text=["Input"], textposition="top center", name="Input",
     textfont=dict(color="#5C2D91", size=13, family="IBM Plex Sans")
 )
+
 fig2d.update_layout(
     height=520, paper_bgcolor=CHART_BG, plot_bgcolor="#F0EBF8", font=FONT,
     title_font_size=14,
     xaxis=dict(title="Recycling Rate", showgrid=True, gridcolor=GRID_COLOR, color="#1C1B2E"),
-    yaxis=dict(title="Landfill Share",  showgrid=True, gridcolor=GRID_COLOR, color="#1C1B2E"),
+    yaxis=dict(title="Landfill Share", showgrid=True, gridcolor=GRID_COLOR, color="#1C1B2E"),
     legend=dict(bgcolor="#EBEBED", bordercolor="#C9C3D8", borderwidth=1,
                 font=dict(color="#1C1B2E")),
     margin=dict(l=20, r=20, t=55, b=20)
 )
+
 st.plotly_chart(fig2d, use_container_width=True)
 
 # ─────────────────────────────────────────────
